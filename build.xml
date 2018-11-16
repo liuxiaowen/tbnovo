@@ -1,0 +1,78 @@
+<project name="proteomics-denovo" default="compile" basedir=".">
+
+
+  <!-- The directory containing source code -->
+  <property name="src.dir" value="src"/>
+  <property name="lib.dir" value="lib"/>
+  <property name="release.dir" value="release"/>
+
+
+  <!-- Temporary build directories -->
+  <property name="build.dir" value="bin"/>
+
+
+  <!-- Global settings -->
+  <property name="javac.debug" value="on"/>
+
+  <!-- Global "magic" property for <javac> -->
+  <property name="build.compiler" value="modern"/>
+
+  <property name="version.num" value="1.0.7"/>
+
+  <tstamp>
+      <format property="TIME_NOW" pattern="yyyy-MM-dd HH:mm:ss" />
+  </tstamp>
+
+  <path id="classpath">
+      <fileset dir="${lib.dir}" includes="**/*.jar"/>
+      <fileset dir="${lib.dir}" includes="**/proteomics/*.jar"/>
+  </path>
+
+  <!-- Target to create the build directories prior to the -->
+  <!-- compile target. -->
+  <target name="prepare">
+      <mkdir dir="${build.dir}"/>
+      <delete file = "git.properties"/>
+      <exec executable="bash">
+        <arg line="update_git_property.sh"></arg>
+      </exec>
+  </target>
+
+
+  <target name="compile" depends="prepare"
+      description="Compiles all source code.">
+      <javac srcdir="${src.dir}" 
+          destdir="${build.dir}"
+          debug="${javac.debug}"
+          classpathref="classpath"
+          includeantruntime="on">
+      </javac>
+      <copy file="${src.dir}/log4j.xml"
+          todir="${build.dir}"/>
+  </target>
+
+  <target name="jar" depends="compile">
+      <property prefix="git" file="git.properties"/>
+      <mkdir dir="${release.dir}"/>
+      <jar jarfile="${release.dir}/proteomics-denovo-${version.num}.${git.build}.jar" 
+          basedir="${build.dir}">
+          <manifest>
+              <attribute name="Main-Class" value=""/>
+              <attribute name="Created-By"  value="Xiaowen Liu"/>  
+              <attribute name="Version"     value="${version.num}"/>  
+              <attribute name="Build-Number" value="${git.build}"/> 
+              <attribute name="Built-Date"  value="${TIME_NOW}"/>                 
+          </manifest>
+      </jar>
+  </target>
+
+  <target name="clean">
+      <delete dir="${build.dir}"/>
+  </target>
+
+  <!-- Delete any created directories and their contents -->
+  <target name="cleanall">
+      <delete dir="${build.dir}"/>
+      <delete dir="${release.dir}"/>
+  </target>
+</project>
